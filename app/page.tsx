@@ -14,11 +14,7 @@ import { BillingData } from '@/types/billing';
 import { BillingTotalsTable } from '@/components/billing-table';
 
 export default function Home() {
-  return (
-    <FilterProvider>
-      <HomeContent />
-    </FilterProvider>
-  );
+  return <HomeContent />; // HomeContent ya está envuelto en FilterProvider en el layout
 }
 
 // app/page.tsx
@@ -104,7 +100,6 @@ function HomeContent() {
             </CardContent>
           </Card>
 
-
           <Card>
             <CardHeader>
               <CardTitle>Tabla de Facturación</CardTitle>
@@ -121,24 +116,9 @@ function HomeContent() {
               />
             </CardContent>
           </Card>
-
-
-
-
-
-
-
-
-
-
-
-
         </div>
 
         <div className='grid gap-6'>
-
-
-
           <Card>
             <CardHeader>
               <CardTitle>Tabla Facturación</CardTitle>

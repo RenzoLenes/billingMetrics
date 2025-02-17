@@ -17,10 +17,10 @@ export function ThemeToggle({ expanded = true }: ThemeToggleProps) {
       variant="ghost"
       size={expanded ? "default" : "icon"}
       onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
-      className="w-full justify-start"
+      className="w-full justify-center"
     >
       <Sun className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-      <Moon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+      <Moon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100 -translate-x-12" />
       {expanded && <span className="ml-2">Cambiar tema</span>}
       
     </Button>

@@ -1,36 +1,31 @@
+// app/page.tsx
 'use client';
 
+import { FilterProvider } from '@/contexts/filter-context';
+import { DatePickerWithRange } from '@/components/date-range-picker';
 import { DataTable } from '@/components/data-table';
 import { columns } from '@/components/columns';
-import { DatePickerWithRange } from '@/components/date-range-picker';
-import { Search } from 'lucide-react';
-import { Input } from '@/components/ui/input';
+import { BillingChart } from '@/components/billing-chart';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useEffect, useState } from 'react';
-import { BillingData } from '@/types/billing';
 import { useFilters } from '@/contexts/filter-context';
+import { BillingData } from '@/types/billing';
+import { BillingTotalsTable } from '@/components/billing-table';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/utils/supabaseClient';
-import { withAuth } from '@/utils/withAuth';
 
+export default function Dashboard() {
+  return <DashboardContent />; // HomeContent ya está envuelto en FilterProvider en el layout
+}
 
-export default withAuth(FacturasContent);
-
-
-function FacturasContent() {
+// app/page.tsx
+function DashboardContent() {
   const [billingData, setBillingData] = useState<BillingData[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-    const router = useRouter()
+  const router = useRouter();
   const { documentType, setDocumentType, dateRange, setDateRange } = useFilters();
-
 
   useEffect(() => {
     const checkSession = async () => {
@@ -42,6 +37,8 @@ function FacturasContent() {
     checkSession();
   }, [router]);
 
+
+  
   useEffect(() => {
     const loadData = async () => {
       try {
@@ -62,19 +59,21 @@ function FacturasContent() {
     loadData();
   }, []);
 
-
   return (
-    <div className="p-6 space-y-8">
+    <div className="min-h-screen bg-background">
+      <div className="p-6 space-y-8">
+
       <div>
-        <h1 className="text-4xl font-bold tracking-tight">Facturas</h1>
+        <h1 className="text-4xl font-bold tracking-tight">Dashboard</h1>
         <p className="text-muted-foreground mt-2">
-          Gestión y búsqueda de documentos
+          Resumen facturación
         </p>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2">
-        {/* <div className="grid gap-6 md:grid-cols-3"> */}
-        <Card>
+
+        {/* Filtros */}
+        <div className="grid gap-6 md:grid-cols-2">
+          <Card>
             <CardHeader className="pb-4">
               <CardTitle className="text-sm font-medium">Rango de Fechas</CardTitle>
             </CardHeader>
@@ -103,26 +102,59 @@ function FacturasContent() {
               </Select>
             </CardContent>
           </Card>
+        </div>
+
+        {/* Gráfico y Tabla */}
+        <div className="grid gap-6 lg:grid-cols-2">
+          <Card>
+            <CardHeader>
+              <CardTitle>Distribución de Ingresos</CardTitle>
+              <CardDescription>
+                Total facturado por entidad
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {billingData.length > 0 ? (
+                <BillingChart data={billingData} />
+              ) : (
+                <div className="text-center text-muted-foreground">
+                  No hay datos para mostrar
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Tabla Facturación</CardTitle>
+              <CardDescription>
+                Total facturación por entidad
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="pt-4">
+              <BillingTotalsTable data={billingData} />
+            </CardContent>
+          </Card>
+
+          {/* <Card>
+            <CardHeader>
+              <CardTitle>Tabla de Facturación</CardTitle>
+              <CardDescription>
+                Resumen detallado de todas las transacciones
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <DataTable
+                columns={columns}
+                data={billingData}
+                loading={loading}
+                error={error}
+              />
+            </CardContent>
+          </Card> */}
+        </div>
 
 
-      </div>
-      <div className="grid gap-6 md:grid-cols-1">
-        <Card>
-          <CardHeader>
-            <CardTitle>Tabla de Facturación</CardTitle>
-            <CardDescription>
-              Resumen detallado de todas las transacciones
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <DataTable
-              columns={columns}
-              data={billingData}
-              loading={loading}
-              error={error}
-            />
-          </CardContent>
-        </Card>
       </div>
     </div>
   );

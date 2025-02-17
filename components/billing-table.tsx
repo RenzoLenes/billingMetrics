@@ -21,12 +21,11 @@ interface BillingTotalsTableProps {
 export function BillingTotalsTable({ data }: BillingTotalsTableProps) {
   const { documentType, dateRange } = useFilters();
 
-  console.log('Datos recibidos en BillingTotalsTable:', data); // Debugging
+
 
   // Filtrar y agrupar datos
 // components/billing-table.tsx
 const aggregatedData = useMemo(() => {
-  console.log('Calculando datos agregados...'); // Debugging
 
   if (!data || data.length === 0) {
     console.warn('No hay datos para procesar');
@@ -69,7 +68,6 @@ const aggregatedData = useMemo(() => {
     console.error('Error procesando datos:', error);
   }
 
-  console.log('Datos agregados calculados:', result); // Debugging
   return result;
 }, [data, documentType, dateRange]);
 
@@ -82,7 +80,6 @@ const aggregatedData = useMemo(() => {
     }));
   }, [aggregatedData]);
 
-  console.log('Datos para la tabla:', aggregatedArray); // Debugging
 
   const totalAmount = useMemo(() => {
     return aggregatedArray.reduce((sum, item) => sum + item.total, 0);

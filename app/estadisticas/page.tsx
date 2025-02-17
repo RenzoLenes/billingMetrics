@@ -11,8 +11,11 @@ import {
 } from '@/components/ui/card';
 import { FilterProvider } from '@/contexts/filter-context';
 import { BillingTotalsTable } from '@/components/billing-table';
+import { withAuth } from '@/utils/withAuth';
 
-export default function EstadisticasPage() {
+export default withAuth(EstadisticasContent);
+
+function EstadisticasContent() {
   return (
     <div className="p-6 space-y-8">
       <div>

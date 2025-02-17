@@ -4,7 +4,7 @@ import { BillingData } from '@/types/billing';
 
 
 export const fetchCombinedBillingData = async (): Promise<BillingData[]> => {
-  console.log('🔄 Ejecutando fetchCombinedBillingData...');
+  // console.log('🔄 Ejecutando fetchCombinedBillingData...');
 
   const limit = 10;
   const totalRecordsNeeded = 100;

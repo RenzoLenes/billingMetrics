@@ -3,29 +3,27 @@
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { ThemeToggle } from './theme-toggle';
-import {
-  BarChart3,
-  FileText,
-  Home,
-  Users,
-  Settings,
-  Menu,
-} from 'lucide-react';
+import { BarChart3, FileText, Home, Users, Settings, Menu, LogOut } from 'lucide-react';
 import Link from 'next/link';
 import { useState } from 'react';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
+import { supabase } from '@/utils/supabaseClient';
 
 const menuItems = [
-  { icon: Home, label: 'Inicio', href: '/' },
+  { icon: Home, label: 'Inicio', href: '/dashboard' },
   { icon: FileText, label: 'Facturas', href: '/facturas' },
-  { icon: BarChart3, label: 'Estadísticas', href: '/estadisticas' },
-  { icon: Users, label: 'Clientes', href: '/clientes' },
-  { icon: Settings, label: 'Configuración', href: '/configuracion' },
 ];
 
 export function Sidebar() {
   const [expanded, setExpanded] = useState(true);
   const pathname = usePathname();
+  const router = useRouter();
+
+  // Función para cerrar sesión
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    router.push('/auth/login'); // Redirige al login después de cerrar sesión
+  };
 
   return (
     <aside className={cn(
@@ -60,11 +58,22 @@ export function Sidebar() {
               >
                 <Icon className="h-5 w-5" />
                 {expanded && <span>{item.label}</span>}
-                
               </Link>
             );
           })}
         </nav>
+
+        {/* Botón de Cerrar Sesión */}
+        <div className="border-t p-3">
+          <Button
+            variant="ghost"
+            className="w-full flex items-center space-x-2 px-3 py-2 hover:bg-red-500 hover:text-white transition-colors"
+            onClick={handleLogout}
+          >
+            <LogOut className="h-5 w-5" />
+            {expanded && <span>Cerrar Sesión</span>}
+          </Button>
+        </div>
 
         <div className="border-t p-3">
           <ThemeToggle expanded={expanded} />

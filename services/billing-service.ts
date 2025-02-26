@@ -7,7 +7,7 @@ export const fetchCombinedBillingData = async (): Promise<BillingData[]> => {
   // console.log('🔄 Ejecutando fetchCombinedBillingData...');
 
   const limit = 10;
-  const totalRecordsNeeded = 450;
+  const totalRecordsNeeded = 400;
 
   const entities = [
     { id: 1, name: 'FOXATEL SAC' },

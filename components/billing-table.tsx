@@ -24,52 +24,55 @@ export function BillingTotalsTable({ data }: BillingTotalsTableProps) {
 
 
   // Filtrar y agrupar datos
-// components/billing-table.tsx
-const aggregatedData = useMemo(() => {
+  // components/billing-table.tsx
+  const aggregatedData = useMemo(() => {
 
-  if (!data || data.length === 0) {
-    console.warn('No hay datos para procesar');
-    return {};
-  }
+    if (!data || data.length === 0) {
+      console.warn('No hay datos para procesar');
+      return {};
+    }
 
-  const result: Record<string, { total: number; count: number }> = {};
+    const result: Record<string, { total: number; count: number }> = {};
 
-  try {
-    data.forEach((item) => {
-      // Validar campos requeridos
-      if (!item.tipoComprobante || !item.fechaEmision || !item.importeTotal) {
-        console.warn('Item inválido:', item);
-        return;
-      }
-
-      // Filtrar por tipo de documento
-      const docMatch = documentType === 'all' || item.tipoComprobante.toLowerCase() === documentType;
-
-      // Filtrar por rango de fechas
-      const itemDate = new Date(item.fechaEmision);
-      const startDate = dateRange?.from ? new Date(dateRange.from) : null;
-      const endDate = dateRange?.to ? new Date(dateRange.to) : null;
-
-      if (startDate) startDate.setHours(0, 0, 0, 0);
-      if (endDate) endDate.setHours(23, 59, 59, 999);
-
-      const dateMatch = !startDate || !endDate || (itemDate >= startDate && itemDate <= endDate);
-
-      if (docMatch && dateMatch) {
-        const entity = item.razonSocial || 'Sin nombre';
-        if (!result[entity]) {
-          result[entity] = { total: 0, count: 0 };
+    try {
+      data.forEach((item) => {
+        // Validar campos requeridos
+        if (!item.tipoComprobante || !item.fechaEmision || !item.importeTotal) {
+          console.warn('Item inválido:', item);
+          return;
         }
-        result[entity].total += item.importeTotal;
-        result[entity].count += 1;
-      }
-    });
-  } catch (error) {
-    console.error('Error procesando datos:', error);
-  }
 
-  return result;
-}, [data, documentType, dateRange]);
+        if (item.baja === false) {
+          // Filtrar por tipo de documento
+          const docMatch = documentType === 'all' || item.tipoComprobante.toLowerCase() === documentType;
+
+          // Filtrar por rango de fechas
+          const itemDate = new Date(item.fechaEmision);
+          const startDate = dateRange?.from ? new Date(dateRange.from) : null;
+          const endDate = dateRange?.to ? new Date(dateRange.to) : null;
+
+          if (startDate) startDate.setHours(0, 0, 0, 0);
+          if (endDate) endDate.setHours(23, 59, 59, 999);
+
+          const dateMatch = !startDate || !endDate || (itemDate >= startDate && itemDate <= endDate);
+
+          if (docMatch && dateMatch) {
+            const entity = item.razonSocial || 'Sin nombre';
+            if (!result[entity]) {
+              result[entity] = { total: 0, count: 0 };
+            }
+            result[entity].total += item.importeTotal;
+            result[entity].count += 1;
+          }
+        }
+
+      });
+    } catch (error) {
+      console.error('Error procesando datos:', error);
+    }
+
+    return result;
+  }, [data, documentType, dateRange]);
 
   // Convertir a array para la tabla
   const aggregatedArray = useMemo(() => {
@@ -84,15 +87,15 @@ const aggregatedData = useMemo(() => {
   const totalAmount = useMemo(() => {
     return aggregatedArray.reduce((sum, item) => sum + item.total, 0);
   }, [aggregatedArray]);
-  
+
   const totalInvoices = useMemo(() => {
     return aggregatedArray.reduce((sum, item) => sum + item.count, 0);
   }, [aggregatedArray]);
-  
+
   const totalEntities = useMemo(() => {
     return aggregatedArray.length;
   }, [aggregatedArray]);
-  
+
   const averageAmount = useMemo(() => {
     return totalEntities > 0 ? totalAmount / totalEntities : 0;
   }, [totalAmount, totalEntities]);
@@ -157,7 +160,7 @@ const aggregatedData = useMemo(() => {
           </TableBody>
         </Table>
       </div>
-  
+
       <div className="grid gap-4 md:grid-cols-3">
         <div className="rounded-lg border p-3">
           <div className="text-sm font-medium text-muted-foreground">Total Facturado</div>

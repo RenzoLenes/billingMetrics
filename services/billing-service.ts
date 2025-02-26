@@ -7,15 +7,15 @@ export const fetchCombinedBillingData = async (): Promise<BillingData[]> => {
   // console.log('🔄 Ejecutando fetchCombinedBillingData...');
 
   const limit = 10;
-  const totalRecordsNeeded = 100;
+  const totalRecordsNeeded = 450;
 
   const entities = [
-    { id: 1, name: 'PERSON 1' },
-    { id: 2, name: 'PERSON 2' },
-    { id: 3, name: 'PERSON 3' },
-    { id: 4, name: 'PERSON 4' },
-    { id: 5, name: 'PERSON 5' },
-    { id: 6, name: 'PERSON 6' }
+    { id: 1, name: 'FOXATEL SAC' },
+    { id: 2, name: 'OSCAR LENES' },
+    { id: 3, name: 'LUZ CHUQUICAÑA' },
+    { id: 4, name: 'JAVIER LENES' },
+    { id: 5, name: 'FERNANDO LENES' },
+    { id: 6, name: 'XAVIER LENES' }
   ];
 
   const fetchData = async (entity: { id: number; name: string }, type: 'factura' | 'boleta') => {

@@ -19,18 +19,16 @@ import { useFilters } from '@/contexts/filter-context';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/utils/supabaseClient';
 import { withAuth } from '@/utils/withAuth';
-
+import { Button } from '@/components/ui/button'; // Importar el componente Button
 
 export default withAuth(FacturasContent);
 
-
 function FacturasContent() {
   const [billingData, setBillingData] = useState<BillingData[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false); // Cambiar a false para que no se cargue automáticamente
   const [error, setError] = useState<string | null>(null);
-    const router = useRouter()
+  const router = useRouter();
   const { documentType, setDocumentType, dateRange, setDateRange } = useFilters();
-
 
   useEffect(() => {
     const checkSession = async () => {
@@ -42,26 +40,35 @@ function FacturasContent() {
     checkSession();
   }, [router]);
 
-  useEffect(() => {
-    const loadData = async () => {
-      try {
-        setLoading(true);
-        const response = await fetch('/api/billing');
-        if (!response.ok) throw new Error('Error en la respuesta');
-        const data = await response.json();
+  const loadData = async () => {
+    try {
+      setLoading(true);
+      setError(null);
 
-        setBillingData(data);
-      } catch (err) {
-        console.error('Error cargando datos:', err); // Debugging
-        setError(err instanceof Error ? err.message : 'Error desconocido');
-      } finally {
-        setLoading(false);
+      // Verifica que se haya seleccionado un rango de fechas
+      if (!(dateRange?.from) || !(dateRange?.to)) {
+        throw new Error('Por favor, selecciona un rango de fechas');
       }
-    };
 
-    loadData();
-  }, []);
+      // Formatea las fechas para enviarlas a la API
+      const startDate = dateRange.from.toISOString().split('T')[0];
+      const endDate = dateRange.to.toISOString().split('T')[0];
 
+      // Llama a la API con el rango de fechas y el tipo de documento
+      const response = await fetch(
+        `/api/billing?startDate=${startDate}&endDate=${endDate}&documentType=${documentType}`
+      );
+      if (!response.ok) throw new Error('Error en la respuesta');
+      const data = await response.json();
+
+      setBillingData(data);
+    } catch (err) {
+      console.error('Error cargando datos:', err);
+      setError(err instanceof Error ? err.message : 'Error desconocido');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="p-6 space-y-8">
@@ -72,40 +79,49 @@ function FacturasContent() {
         </p>
       </div>
 
+      {/* Filtros */}
       <div className="grid gap-6 md:grid-cols-2">
-        {/* <div className="grid gap-6 md:grid-cols-3"> */}
         <Card>
-            <CardHeader className="pb-4">
-              <CardTitle className="text-sm font-medium">Rango de Fechas</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <DatePickerWithRange />
-            </CardContent>
-          </Card>
+          <CardHeader className="pb-4">
+            <CardTitle className="text-sm font-medium">Rango de Fechas</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <DatePickerWithRange
+              onDateChange={(range) => setDateRange(range ? { from: range.from || new Date(), to: range.to || new Date() } : undefined)} // Actualiza el estado local
+            />
+          </CardContent>
+        </Card>
 
-          <Card>
-            <CardHeader className="pb-4">
-              <CardTitle className="text-sm font-medium">Tipo de Documento</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Select
-                value={documentType}
-                onValueChange={(value) => setDocumentType(value)}
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Selecciona un tipo" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todos</SelectItem>
-                  <SelectItem value="factura">Facturas</SelectItem>
-                  <SelectItem value="boleta">Boletas</SelectItem>
-                </SelectContent>
-              </Select>
-            </CardContent>
-          </Card>
-
-
+        <Card>
+          <CardHeader className="pb-4">
+            <CardTitle className="text-sm font-medium">Tipo de Documento</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Select
+              value={documentType}
+              onValueChange={(value) => setDocumentType(value)}
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Selecciona un tipo" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos</SelectItem>
+                <SelectItem value="factura">Facturas</SelectItem>
+                <SelectItem value="boleta">Boletas</SelectItem>
+              </SelectContent>
+            </Select>
+          </CardContent>
+        </Card>
       </div>
+
+      {/* Botón "Consultar" */}
+      <div className="flex justify-end">
+        <Button onClick={loadData} disabled={loading}>
+          {loading ? 'Cargando...' : 'Consultar'}
+        </Button>
+      </div>
+
+      {/* Tabla de Facturación */}
       <div className="grid gap-6 md:grid-cols-1">
         <Card>
           <CardHeader>

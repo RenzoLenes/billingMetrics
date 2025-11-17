@@ -3,11 +3,12 @@
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { ThemeToggle } from './theme-toggle';
-import { BarChart3, FileText, Home, Users, Settings, Menu, LogOut } from 'lucide-react';
+import { FileText, Home, Menu, LogOut } from 'lucide-react';
 import Link from 'next/link';
 import { useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
-import { supabase } from '@/utils/supabaseClient';
+import { createClient } from '@/lib/supabase/client';
+import { useMediaQuery } from '@/hooks/useMediaQuery';
 
 const menuItems = [
   { icon: Home, label: 'Inicio', href: '/dashboard' },
@@ -18,16 +19,22 @@ export function Sidebar() {
   const [expanded, setExpanded] = useState(true);
   const pathname = usePathname();
   const router = useRouter();
+  const isMobile = useMediaQuery('(max-width: 768px)');
+  const supabase = createClient();
 
-  // Función para cerrar sesión
   const handleLogout = async () => {
     await supabase.auth.signOut();
-    router.push('/auth/login'); // Redirige al login después de cerrar sesión
+    router.push('/auth/login');
   };
+
+  // Don't render on mobile - MobileSidebar handles mobile view
+  if (isMobile) {
+    return null;
+  }
 
   return (
     <aside className={cn(
-      "h-screen sticky top-0 bg-background border-r transition-all duration-300",
+      "h-screen sticky top-0 bg-background border-r transition-all duration-300 flex-shrink-0",
       expanded ? "w-64" : "w-16"
     )}>
       <div className="flex h-full flex-col">
@@ -39,6 +46,7 @@ export function Sidebar() {
             variant="ghost"
             size="icon"
             onClick={() => setExpanded(!expanded)}
+            className="hover:bg-accent"
           >
             <Menu className="h-5 w-5" />
           </Button>
@@ -52,26 +60,31 @@ export function Sidebar() {
                 key={item.href}
                 href={item.href}
                 className={cn(
-                  "flex items-center space-x-2 rounded-lg px-3 py-2 text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors",
+                  "flex items-center rounded-lg px-3 py-2 text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors",
+                  expanded ? "space-x-2" : "justify-center",
                   pathname === item.href && "bg-accent text-accent-foreground"
                 )}
+                title={!expanded ? item.label : undefined}
               >
-                <Icon className="h-5 w-5" />
-                {expanded && <span>{item.label}</span>}
+                <Icon className="h-5 w-5 flex-shrink-0" />
+                {expanded && <span className="truncate">{item.label}</span>}
               </Link>
             );
           })}
         </nav>
 
-        {/* Botón de Cerrar Sesión */}
         <div className="border-t p-3">
           <Button
             variant="ghost"
-            className="w-full flex items-center space-x-2 px-3 py-2 hover:bg-red-500 hover:text-white transition-colors"
+            className={cn(
+              "w-full flex items-center px-3 py-2 hover:bg-red-500 hover:text-white transition-colors",
+              expanded ? "space-x-2" : "justify-center"
+            )}
             onClick={handleLogout}
+            title={!expanded ? "Cerrar Sesión" : undefined}
           >
-            <LogOut className="h-5 w-5" />
-            {expanded && <span>Cerrar Sesión</span>}
+            <LogOut className="h-5 w-5 flex-shrink-0" />
+            {expanded && <span className="truncate">Cerrar Sesión</span>}
           </Button>
         </div>
 

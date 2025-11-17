@@ -1,9 +1,8 @@
-// components/date-range-picker.tsx
 'use client';
 
 import * as React from 'react';
 import { CalendarIcon } from 'lucide-react';
-import { DateRange, SelectRangeEventHandler } from 'react-day-picker';
+import { DateRange } from 'react-day-picker';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
@@ -13,15 +12,16 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 import { format } from 'date-fns';
-import { useFilters } from '@/contexts/filter-context'; // Importar el contexto
+
+interface DatePickerWithRangeProps extends React.HTMLAttributes<HTMLDivElement> {
+  onDateChange: (range: DateRange | undefined) => void; // Callback para manejar cambios de fecha
+}
 
 export function DatePickerWithRange({
   className,
-}: React.HTMLAttributes<HTMLDivElement>) {
-  const { dateRange, setDateRange } = useFilters() as {
-    dateRange: DateRange | undefined;
-    setDateRange: SelectRangeEventHandler;
-  }; // Usar el contexto
+  onDateChange,
+}: DatePickerWithRangeProps) {
+  const [dateRange, setDateRange] = React.useState<DateRange | undefined>();
 
   return (
     <div className={cn('grid gap-2', className)}>
@@ -56,7 +56,10 @@ export function DatePickerWithRange({
             mode="range"
             defaultMonth={dateRange?.from}
             selected={dateRange}
-            onSelect={setDateRange} // Usar setDateRange del contexto
+            onSelect={(range) => {
+              setDateRange(range); // Actualiza el estado local
+              onDateChange(range); // Notifica al padre el cambio
+            }}
             numberOfMonths={2}
           />
         </PopoverContent>

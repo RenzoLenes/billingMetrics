@@ -1,75 +1,64 @@
-// app/page.tsx
 'use client';
 
-import { FilterProvider } from '@/contexts/filter-context';
-import { DatePickerWithRange } from '@/components/date-range-picker';
-import { DataTable } from '@/components/data-table';
-import { columns } from '@/components/columns';
-import { BillingChart } from '@/components/billing-chart';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useEffect, useState } from 'react';
-import { useFilters } from '@/contexts/filter-context';
-import { BillingData } from '@/types/billing';
+import { DatePickerWithRange } from '@/components/date-range-picker';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { BillingChart } from '@/components/billing-chart';
 import { BillingTotalsTable } from '@/components/billing-table';
-import { useRouter } from 'next/navigation';
-import { supabase } from '@/utils/supabaseClient';
+import { BillingData } from '@/types/billing';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useFilters } from '@/contexts/filter-context';
 
 export default function Dashboard() {
-  return <DashboardContent />; // HomeContent ya está envuelto en FilterProvider en el layout
+  return <DashboardContent />;
 }
 
-// app/page.tsx
 function DashboardContent() {
   const [billingData, setBillingData] = useState<BillingData[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const router = useRouter();
   const { documentType, setDocumentType, dateRange, setDateRange } = useFilters();
 
-  useEffect(() => {
-    const checkSession = async () => {
-      const { data } = await supabase.auth.getSession();
-      if (!data.session) {
-        router.push('/auth/login');
+  const loadData = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      // Verifica que se haya seleccionado un rango de fechas
+      if (!(dateRange?.from) || !(dateRange?.to)) {
+        throw new Error('Por favor, selecciona un rango de fechas');
       }
-    };
-    checkSession();
-  }, [router]);
 
+      // Formatea las fechas para enviarlas a la API
+      const startDate = dateRange.from.toISOString().split('T')[0];
+      const endDate = dateRange.to.toISOString().split('T')[0];
 
-  
-  useEffect(() => {
-    const loadData = async () => {
-      try {
-        setLoading(true);
-        const response = await fetch('/api/billing');
-        if (!response.ok) throw new Error('Error en la respuesta');
-        const data = await response.json();
+      // Llama a la API con el rango de fechas y el tipo de documento
+      const response = await fetch(
+        `/api/billing?startDate=${startDate}&endDate=${endDate}&documentType=${documentType}`
+      );
+      if (!response.ok) throw new Error('Error en la respuesta');
+      const data = await response.json();
 
-        setBillingData(data);
-      } catch (err) {
-        console.error('Error cargando datos:', err); // Debugging
-        setError(err instanceof Error ? err.message : 'Error desconocido');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadData();
-  }, []);
+      setBillingData(data);
+    } catch (err) {
+      console.error('Error cargando datos:', err);
+      setError(err instanceof Error ? err.message : 'Error desconocido');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-background">
       <div className="p-6 space-y-8">
-
-      <div>
-        <h1 className="text-4xl font-bold tracking-tight">Dashboard</h1>
-        <p className="text-muted-foreground mt-2">
-          Resumen facturación
-        </p>
-      </div>
-
+        <div>
+          <h1 className="text-4xl font-bold tracking-tight">Dashboard</h1>
+          <p className="text-muted-foreground mt-2">
+            Resumen facturación
+          </p>
+        </div>
 
         {/* Filtros */}
         <div className="grid gap-6 md:grid-cols-2">
@@ -78,7 +67,9 @@ function DashboardContent() {
               <CardTitle className="text-sm font-medium">Rango de Fechas</CardTitle>
             </CardHeader>
             <CardContent>
-              <DatePickerWithRange />
+              <DatePickerWithRange
+              onDateChange={(range) => setDateRange(range ? { from: range.from || new Date(), to: range.to || new Date() } : undefined)} // Actualiza el estado local
+              />
             </CardContent>
           </Card>
 
@@ -102,6 +93,13 @@ function DashboardContent() {
               </Select>
             </CardContent>
           </Card>
+        </div>
+
+        {/* Botón "Consultar" */}
+        <div className="flex justify-end">
+          <Button onClick={loadData} disabled={loading}>
+            {loading ? 'Cargando...' : 'Consultar'}
+          </Button>
         </div>
 
         {/* Gráfico y Tabla */}
@@ -135,26 +133,7 @@ function DashboardContent() {
               <BillingTotalsTable data={billingData} />
             </CardContent>
           </Card>
-
-          {/* <Card>
-            <CardHeader>
-              <CardTitle>Tabla de Facturación</CardTitle>
-              <CardDescription>
-                Resumen detallado de todas las transacciones
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <DataTable
-                columns={columns}
-                data={billingData}
-                loading={loading}
-                error={error}
-              />
-            </CardContent>
-          </Card> */}
         </div>
-
-
       </div>
     </div>
   );

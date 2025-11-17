@@ -70,7 +70,6 @@ export function BillingTotalsTable({ data }: BillingTotalsTableProps) {
     } catch (error) {
       console.error('Error procesando datos:', error);
     }
-
     return result;
   }, [data, documentType, dateRange]);
 

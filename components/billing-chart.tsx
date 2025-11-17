@@ -17,6 +17,7 @@ export function BillingChart({ data }: BillingChartProps) {
 
   const chartData = useMemo(() => {
     // console.log('Datos recibidos en BillingChart:', data); // Debugging
+    //console.log('dateRange en BillingChart:', dateRange);
 
     if (!data || data.length === 0) {
       console.warn('No hay datos para mostrar');
